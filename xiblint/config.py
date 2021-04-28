@@ -1,4 +1,5 @@
 import json
+import glob
 from os.path import abspath
 from fnmatch import fnmatch
 
@@ -21,10 +22,11 @@ class Config(object):
         validate_rule_patterns(self.rules)
         default_rules_config = data.get('rules_config', {})
         self.include_paths = data.get('include_paths', [u'.'])
-        self.paths = {
-            abspath(path): PathConfig(self, default_rules_config, config)
-            for (path, config) in data.get('paths', {}).items()
-        }
+        self.paths = {}
+        for (path, config) in data.get('paths', {}).items():
+            glob_paths = glob.iglob(path)
+            for glob_path in glob_paths:
+                self.paths[abspath(glob_path)] = PathConfig(self, default_rules_config, config)
         self.base_config = PathConfig(self, default_rules_config, {})
 
     def _config_for_file_path(self, file_path):
